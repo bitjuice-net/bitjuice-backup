@@ -18,6 +18,8 @@ namespace BitJuice.Backup.Modules.Aggregators
         protected ProxyStream OutputStream { get; }
         protected IDataItem CurrentItem => enumerator.Current;
         protected Stream CurrentItemStream { get; private set; }
+        protected long ContentSize { get; private set; }
+        protected long ContentRead { get; private set; }
 
         protected ArchiveBuilder(ILogger<ArchiveBuilder> logger, IEnumerable<IDataItem> items, int fileBufferSize = DefaultBufferSize)
         {
@@ -61,6 +63,8 @@ namespace BitJuice.Backup.Modules.Aggregators
                     try
                     {
                         CurrentItemStream = CurrentItem.GetStream();
+                        ContentSize = CurrentItemStream.Length;
+                        ContentRead = 0;
                     }
                     catch (Exception ex)
                     {
@@ -76,13 +80,26 @@ namespace BitJuice.Backup.Modules.Aggregators
                     var count = CurrentItemStream.Read(readBuffer, 0, readBuffer.Length);
                     if (count == 0)
                         return ArchiveBuilderState.CloseFile;
+
+                    if (ContentRead + count > ContentSize)
+                    {
+                        Logger.LogWarning("File " + CurrentItem.VirtualPath + " has been altered (+) during read. File content may be corrupted.");
+                        count = (int)(ContentSize - ContentRead);
+                    }
+                    
+                    ContentRead += count;
                     WriteFile(readBuffer, count);
                     return ArchiveBuilderState.ReadFile;
 
                 case ArchiveBuilderState.CloseFile:
+                    if(ContentRead < ContentSize)
+                        Logger.LogWarning("File " + CurrentItem.VirtualPath + " has been altered (-) during read. File content may be corrupted.");
+
                     CloseFile();
                     CurrentItemStream.Dispose();
                     CurrentItemStream = null;
+                    ContentSize = 0;
+                    ContentRead = 0;
                     return ArchiveBuilderState.OpenFile;
 
                 case ArchiveBuilderState.CloseArchive:
