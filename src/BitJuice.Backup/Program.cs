@@ -38,7 +38,7 @@ namespace BitJuice.Backup
                 writer.WriteLine("#!/bin/bash");
                 writer.WriteLine();
                 writer.WriteLine($"cd {dir}");
-                writer.WriteLine("./Backup execute");
+                writer.WriteLine("./BitJuice.Backup execute");
             }
 
             Process.StartProcess("chmod", $"+x {cron.FullName}");
