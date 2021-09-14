@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Backup": {
+      "commandName": "Project",
+      "commandLineArgs": "execute"
+    }
+  }
+}

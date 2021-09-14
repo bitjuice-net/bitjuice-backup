@@ -1,0 +1,17 @@
+{
+  "modules": [
+    "Backup.Modules"
+  ],
+  "serilog": {
+    "MinimumLevel": "Information",
+    "Using": [ "Serilog.Sinks.Console" ],
+    "WriteTo": [
+      { "Name": "Console" },
+      {
+        "Name": "File",
+        "Args": { "path": "backup.log" }
+      }
+    ],
+    "Enrich": [ "FromLogContext", "WithMachineName", "WithThreadId" ]
+  }
+}
