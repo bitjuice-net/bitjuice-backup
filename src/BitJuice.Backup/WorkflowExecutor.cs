@@ -6,13 +6,13 @@ using Microsoft.Extensions.Options;
 
 namespace BitJuice.Backup
 {
-    public class ApplicationService : IApplicationService
+    public class WorkflowExecutor
     {
-        private readonly ILogger<ApplicationService> logger;
-        private readonly IOptions<ApplicationOptions> options;
+        private readonly ILogger<WorkflowExecutor> logger;
+        private readonly IOptions<WorkflowExecutorOptions> options;
         private readonly IModuleFactory moduleFactory;
 
-        public ApplicationService(ILogger<ApplicationService> logger, IOptions<ApplicationOptions> options, IModuleFactory moduleFactory)
+        public WorkflowExecutor(ILogger<WorkflowExecutor> logger, IOptions<WorkflowExecutorOptions> options, IModuleFactory moduleFactory)
         {
             this.logger = logger;
             this.options = options;

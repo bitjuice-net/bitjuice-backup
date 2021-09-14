@@ -1,6 +1,6 @@
 ﻿namespace BitJuice.Backup
 {
-    public class ApplicationOptions
+    public class WorkflowExecutorOptions
     {
         public string WorkflowFile { get; set; }
     }
