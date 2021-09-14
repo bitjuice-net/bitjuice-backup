@@ -1,6 +1,6 @@
 {
   "modules": [
-    "Backup.Modules"
+    "BitJuice.Backup.Modules"
   ],
   "serilog": {
     "MinimumLevel": "Information",
