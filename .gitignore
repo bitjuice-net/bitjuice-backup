@@ -3,5 +3,6 @@
 
 bin/
 obj/
+publish/
 
 /Backup/config/workflow.json
