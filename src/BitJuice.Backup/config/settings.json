@@ -4,12 +4,15 @@
   ],
   "serilog": {
     "MinimumLevel": "Information",
-    "Using": [ "Serilog.Sinks.Console" ],
+    "Using": [ "Serilog.Sinks.Console", "Serilog.Sinks.File" ],
     "WriteTo": [
       { "Name": "Console" },
       {
         "Name": "File",
-        "Args": { "path": "backup.log" }
+        "Args": {
+          "path": "logs/backup-.log",
+          "rollingInterval": 3
+        }
       }
     ],
     "Enrich": [ "FromLogContext", "WithMachineName", "WithThreadId" ]
