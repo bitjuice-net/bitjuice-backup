@@ -8,7 +8,7 @@ namespace BitJuice.Backup.Modules.Aggregators
 {
     public abstract class ArchiveBuilder
     {
-        private const int DefaultBufferSize = 1024 * 1024 * 1024;
+        private const int DefaultBufferSize = 10 * 1024 * 1024;
         
         private readonly byte[] readBuffer;
         private readonly IEnumerator<IDataItem> enumerator;
