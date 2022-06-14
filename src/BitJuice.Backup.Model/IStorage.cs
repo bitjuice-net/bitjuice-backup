@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BitJuice.Backup.Model
 {
     public interface IStorage : IModule
     {
-        void Push(IEnumerable<IDataItem> items);
+        Task PushAsync(IEnumerable<IDataItem> items);
     }
 }

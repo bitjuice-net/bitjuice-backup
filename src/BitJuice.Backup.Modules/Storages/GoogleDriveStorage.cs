@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using BitJuice.Backup.Infrastructure;
 using BitJuice.Backup.Model;
 using Google.Apis.Auth.OAuth2;
@@ -19,17 +21,17 @@ namespace BitJuice.Backup.Modules.Storages
         private const string ContentType = "application/octet-stream";
         private readonly ILogger<GoogleDriveStorage> logger;
 
-        private static readonly string[] Scopes = { DriveService.Scope.Drive };
         private static readonly string ApplicationName = "VPS Backup";
+        private static readonly string[] Scopes = { DriveService.Scope.Drive };
 
         public GoogleDriveStorage(ILogger<GoogleDriveStorage> logger)
         {
             this.logger = logger;
         }
 
-        public void Push(IEnumerable<IDataItem> items)
+        public async Task PushAsync(IEnumerable<IDataItem> items)
         {
-            var credential = Authorize();
+            var credential = await AuthorizeAsync();
 
             // Create Drive API service.
             var service = new DriveService(new BaseClientService.Initializer
@@ -47,14 +49,14 @@ namespace BitJuice.Backup.Modules.Storages
                     ? $"name = '{item.Name}' and 'root' in parents and trashed = false"
                     : $"name = '{item.Name}' and '{Config.FolderId}' in parents and trashed = false";
                 request.PageSize = 10;
-                var files = request.Execute().Files;
-                Upload(service, item, files.FirstOrDefault());
+                var response = await request.ExecuteAsync();
+                await UploadAsync(service, item, response.Files.FirstOrDefault());
 
                 logger.LogInformation("Upload finished");
             }
         }
 
-        private void Upload(DriveService service, IDataItem item, File file)
+        private async Task UploadAsync(DriveService service, IDataItem item, File file)
         {
             var metadata = new File
             {
@@ -66,25 +68,25 @@ namespace BitJuice.Backup.Modules.Storages
             if (file == null && !string.IsNullOrWhiteSpace(Config.FolderId))
                 metadata.Parents.Add(Config.FolderId);
 
-            using var inputStream = item.GetStream();
-            var request = file != null
-                ? (ResumableUpload<File, File>) service.Files.Update(metadata, file.Id, inputStream, ContentType)
-                : (ResumableUpload<File, File>) service.Files.Create(metadata, inputStream, ContentType);
+            await using var inputStream = item.GetStream();
+            ResumableUpload<File, File> request = file != null
+                ? service.Files.Update(metadata, file.Id, inputStream, ContentType)
+                : service.Files.Create(metadata, inputStream, ContentType);
 
-            var progress = request.Upload();
+            var progress = await request.UploadAsync();
             while (progress.Status != UploadStatus.Completed)
             {
                 if (progress.Exception != null)
-                    throw progress.Exception;
-                Thread.Sleep(100);
+                    throw new Exception("GoogleDrive upload error.", progress.Exception);
+                await Task.Delay(100);
             }
         }
 
-        private UserCredential Authorize()
+        private async Task<UserCredential> AuthorizeAsync()
         {
-            var clientSecrets = GoogleClientSecrets.FromFile(Config.CredentialsFile);
+            var clientSecrets = await GoogleClientSecrets.FromFileAsync(Config.CredentialsFile);
             var fileDataStore = new FileDataStore(Config.TokensDir, true);
-            return GoogleWebAuthorizationBroker.AuthorizeAsync(clientSecrets.Secrets, Scopes, "user", CancellationToken.None, fileDataStore, new GoogleCodeReceiver()).Result;
+            return await GoogleWebAuthorizationBroker.AuthorizeAsync(clientSecrets.Secrets, Scopes, "user", CancellationToken.None, fileDataStore, new GoogleCodeReceiver());
         }
     }
 }

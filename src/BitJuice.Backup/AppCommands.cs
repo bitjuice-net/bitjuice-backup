@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using BitJuice.Backup.Infrastructure;
 using BitJuice.Backup.Model;
 using Microsoft.Extensions.Configuration;
@@ -9,11 +10,11 @@ namespace BitJuice.Backup
 {
     public class AppCommands
     {
-        public static void Execute(string workflowFile)
+        public static async Task Execute(string workflowFile)
         {
             var services = ConfigureServices(workflowFile ?? "config/workflow.json");
             var executor = services.GetRequiredService<WorkflowExecutor>();
-            executor.Run();
+            await executor.RunAsync();
         }
 
         private static IServiceProvider ConfigureServices(string workflowFile)

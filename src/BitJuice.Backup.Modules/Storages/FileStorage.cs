@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using BitJuice.Backup.Infrastructure;
 using BitJuice.Backup.Model;
 
@@ -8,15 +9,15 @@ namespace BitJuice.Backup.Modules.Storages
     [ModuleName("file-storage")]
     public class FileStorage : ModuleBase<FileConfig>, IStorage
     {
-        public void Push(IEnumerable<IDataItem> items)
+        public async Task PushAsync(IEnumerable<IDataItem> items)
         {
             foreach (var item in items)
             {
-                using var inputStream = item.GetStream();
+                await using var inputStream = item.GetStream();
                 var path = Config.Path ?? string.Empty;
                 path = Path.Combine(path, item.Name);
-                using var outputStream = File.Open(path, FileMode.Create);
-                inputStream.CopyTo(outputStream);
+                await using var outputStream = File.Open(path, FileMode.Create);
+                await inputStream.CopyToAsync(outputStream);
                 outputStream.Close();
             }
         }

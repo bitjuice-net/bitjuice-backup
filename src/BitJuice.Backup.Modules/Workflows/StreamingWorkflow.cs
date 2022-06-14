@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using BitJuice.Backup.Infrastructure;
 using BitJuice.Backup.Model;
 using Microsoft.Extensions.Configuration;
@@ -48,7 +49,7 @@ namespace BitJuice.Backup.Modules.Workflows
                 throw new Exception("You need to define a storage");
         }
 
-        public void Run()
+        public async Task RunAsync()
         {
             if (string.IsNullOrWhiteSpace(Config.Description))
                 logger.LogInformation("Starting workflow");
@@ -64,7 +65,7 @@ namespace BitJuice.Backup.Modules.Workflows
                 logger.LogInformation("Executing backup");
                 var items = providers.SelectMany(i => i.Get());
                 items = aggregator.Aggregate(items);
-                storage.Push(items);
+                await storage.PushAsync(items);
             }
             catch (Exception exception)
             {

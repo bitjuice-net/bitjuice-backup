@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using BitJuice.Backup.Model;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -19,13 +20,13 @@ namespace BitJuice.Backup
             this.moduleFactory = moduleFactory;
         }
 
-        public void Run()
+        public async Task RunAsync()
         {
             try
             {
                 var config = new ConfigurationBuilder().AddJsonFile(options.Value.WorkflowFile).Build();
                 var workflow = moduleFactory.Create<IWorkflow>(config);
-                workflow.Run();
+                await workflow.RunAsync();
             }
             catch (Exception exception)
             {
