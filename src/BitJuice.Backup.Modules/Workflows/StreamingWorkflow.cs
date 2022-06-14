@@ -35,12 +35,12 @@ namespace BitJuice.Backup.Modules.Workflows
             preActions = factory.CreateList<IAction>(config.GetSection("pre-actions"));
             postActions = factory.CreateList<IAction>(config.GetSection("post-actions"));
             providers = factory.CreateList<IProvider>(config.GetSection("providers"));
-         
-            if(providers == null || !providers.Any())
+
+            if (providers == null || !providers.Any())
                 throw new Exception("You need at least one provider");
 
             aggregator = factory.Create<IAggregator>(config.GetSection("aggregator"));
-            if(aggregator == null)
+            if (aggregator == null)
                 throw new Exception("You need to define an aggregator");
 
             storage = factory.Create<IStorage>(config.GetSection("storage"));
@@ -50,7 +50,7 @@ namespace BitJuice.Backup.Modules.Workflows
 
         public void Run()
         {
-            if(string.IsNullOrWhiteSpace(Config.Description))
+            if (string.IsNullOrWhiteSpace(Config.Description))
                 logger.LogInformation("Starting workflow");
             else
                 logger.LogInformation("Starting workflow: " + Config.Description);

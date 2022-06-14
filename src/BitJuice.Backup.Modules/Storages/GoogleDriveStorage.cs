@@ -19,8 +19,6 @@ namespace BitJuice.Backup.Modules.Storages
         private const string ContentType = "application/octet-stream";
         private readonly ILogger<GoogleDriveStorage> logger;
 
-        // If modifying these scopes, delete your previously saved credentials
-        // at ~/.credentials/drive-dotnet-quickstart.json
         private static readonly string[] Scopes = { DriveService.Scope.Drive };
         private static readonly string ApplicationName = "VPS Backup";
 
