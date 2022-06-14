@@ -1,23 +1,37 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.Threading.Tasks;
 
 namespace BitJuice.Backup
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            var cronCommand = new Command("cron") ;
-            cronCommand.AddCommand(new Command("install") { Handler = CommandHandler.Create(CronCommands.Install) });
-            cronCommand.AddCommand(new Command("uninstall") { Handler = CommandHandler.Create(CronCommands.Uninstall) });
+            var configOption = new Option<string>(new[] { "-c", "--config" }, "Add configuration file.");
 
-            var executeCommand = new Command("execute") { Handler = CommandHandler.Create<string>(AppCommands.Execute) };
-            executeCommand.AddOption(new Option(new[] { "-c", "--config" }, "Add configuration file.") { Argument = new Argument<string>() });
+            var cronInstallCommand = new Command("install");
+            cronInstallCommand.SetHandler(CronCommands.Install);
 
-            var rootCommand = new RootCommand("Backup Utility");
-            rootCommand.AddCommand(cronCommand);
-            rootCommand.AddCommand(executeCommand);
-            rootCommand.Invoke(args);
+            var cronUninstallCommand = new Command("uninstall");
+            cronInstallCommand.SetHandler(CronCommands.Uninstall);
+
+            var cronCommand = new Command("cron")
+            {
+                cronInstallCommand,
+                cronUninstallCommand
+            };
+
+            var executeCommand = new Command("execute") {configOption};
+            executeCommand.SetHandler(AppCommands.Execute, configOption);
+
+            var rootCommand = new RootCommand("Backup Utility")
+            {
+                cronCommand,
+                executeCommand
+            };
+
+            await rootCommand.InvokeAsync(args);
         }
     }
 }

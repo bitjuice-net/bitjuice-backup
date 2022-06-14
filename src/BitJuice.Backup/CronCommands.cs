@@ -1,5 +1,5 @@
 ﻿using System;
-using System.CommandLine.Invocation;
+using System.Diagnostics;
 using System.IO;
 
 namespace BitJuice.Backup
@@ -21,7 +21,7 @@ namespace BitJuice.Backup
                 writer.WriteLine($"./{ExecutableName} execute");
             }
 
-            Process.StartProcess("chmod", $"+x {cron.FullName}");
+            Process.Start("chmod", $"+x {cron.FullName}");
         }
 
         public static void Uninstall()
