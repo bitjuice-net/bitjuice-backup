@@ -24,7 +24,7 @@ namespace BitJuice.Backup.Modules.Aggregators
 
         protected override void OpenFile()
         {
-            var tarEntry = TarEntry.CreateTarEntry(CurrentItem.VirtualPath);
+            var tarEntry = TarEntry.CreateTarEntry(CurrentItem.VirtualPath.Replace('\\', '/'));
             tarEntry.Size = CurrentItemStream.Length;
             tarStream.PutNextEntry(tarEntry);
         }
