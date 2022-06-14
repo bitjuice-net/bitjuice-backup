@@ -9,7 +9,8 @@ namespace BitJuice.Backup.Infrastructure
 {
     public class ModuleFactory : IModuleFactory
     {
-        private const string DefaultModuleNameKey = "module";
+        private const string DefaultModuleNameKey = "@module";
+        private const string LegacyModuleNameKey = "module";
 
         private readonly IServiceProvider serviceProvider;
         private readonly IModuleRepository moduleRepository;
@@ -22,7 +23,7 @@ namespace BitJuice.Backup.Infrastructure
 
         public T Create<T>(IConfiguration config) where T : IModule
         {
-            var moduleName = config.GetSection(DefaultModuleNameKey)?.Value;
+            var moduleName = config.GetSection(DefaultModuleNameKey)?.Value ?? config.GetSection(LegacyModuleNameKey)?.Value;
             if (moduleName == null)
                 return default;
 

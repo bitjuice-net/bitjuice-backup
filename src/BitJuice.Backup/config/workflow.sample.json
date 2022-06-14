@@ -1,9 +1,9 @@
 {
-  "module": "streaming-workflow",
+  "@module": "streaming-workflow",
   "description": "Backup home directories to cloud",
   "providers": [
     {
-      "module": "directory-provider",
+      "@module": "directory-provider",
       "paths": [ "/home/user" ],
       "rewrites": [
         {
@@ -14,11 +14,11 @@
     }
   ],
   "aggregator": {
-    "module": "tgz-aggregator",
+    "@module": "tgz-aggregator",
     "filename": "backup.tar.gz"
   },
   "storage": {
-    "module": "file-storage",
+    "@module": "file-storage",
     "path": "/backup"
   }
 }
