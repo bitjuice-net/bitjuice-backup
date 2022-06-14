@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using BitJuice.Backup.Infrastructure;
@@ -85,14 +84,9 @@ namespace BitJuice.Backup.Modules.Storages
 
         private UserCredential Authorize()
         {
-            using var stream = new FileStream(Config.CredentialsFile, FileMode.Open, FileAccess.Read);
-            return GoogleWebAuthorizationBroker.AuthorizeAsync(
-                GoogleClientSecrets.Load(stream).Secrets,
-                Scopes,
-                "user",
-                CancellationToken.None,
-                new FileDataStore(Config.TokensDir, true),
-                new PromptCodeReceiver()).Result;
+            var clientSecrets = GoogleClientSecrets.FromFile(Config.CredentialsFile);
+            var fileDataStore = new FileDataStore(Config.TokensDir, true);
+            return GoogleWebAuthorizationBroker.AuthorizeAsync(clientSecrets.Secrets, Scopes, "user", CancellationToken.None, fileDataStore, new GoogleCodeReceiver()).Result;
         }
     }
 }
