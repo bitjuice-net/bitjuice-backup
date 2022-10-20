@@ -21,24 +21,36 @@ namespace BitJuice.Backup.Modules.Actions
             var startInfo = new ProcessStartInfo
             {
                 UseShellExecute = false,
-                FileName = Config.Command
+                FileName = Config.Command,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
             };
 
-            if (Config.Arguments != null)
-                logger.LogInformation($"Executing command: {Config.Command} {string.Join(' ', Config.Arguments)}");
-            else
-                logger.LogInformation($"Executing command: {Config.Command}");
+            logger.LogInformation(Config.Arguments is null 
+                ? $"Executing command: {Config.Command}" 
+                : $"Executing command: {Config.Command} {string.Join(' ', Config.Arguments)}");
 
             if (Config.Arguments != null)
                 foreach (var argumentsList in Config.Arguments) 
                     startInfo.ArgumentList.Add(argumentsList);
+
             try
             {
                 var process = Process.Start(startInfo);
                 if (process == null)
                     throw new Exception("Cannot execute process: " + Config.Command);
 
-                if (!process.WaitForExit(Config.TimeoutMs))
+                var exited = process.WaitForExit(Config.TimeoutMs);
+
+                var standardOutput = process.StandardOutput.ReadToEnd().Trim();
+                var standardError = process.StandardError.ReadToEnd().Trim();
+
+                if (!string.IsNullOrWhiteSpace(standardOutput))
+                    logger.LogInformation("Output Stream: " + standardOutput);
+                if (!string.IsNullOrWhiteSpace(standardError))
+                    logger.LogInformation("Error Stream: " + standardError);
+
+                if (!exited)
                 {
                     process.Kill();
                     throw new Exception("Process reached maximum execution time, aborting.");
