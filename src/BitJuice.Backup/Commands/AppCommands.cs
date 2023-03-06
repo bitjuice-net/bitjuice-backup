@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using BitJuice.Backup.Core;
-using BitJuice.Backup.Model;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -10,31 +9,30 @@ namespace BitJuice.Backup.Commands
 {
     public class AppCommands
     {
-        public static async Task Execute(string workflowFile)
+        private const string DefaultSettingsFile = "config/settings.json";
+
+        public static async Task Execute(string settingsFile)
         {
-            var services = ConfigureServices(workflowFile ?? "config/workflow.json");
+            var services = ConfigureServices(settingsFile);
             var executor = services.GetRequiredService<WorkflowExecutor>();
             await executor.RunAsync();
         }
 
-        private static IServiceProvider ConfigureServices(string workflowFile)
+        private static IServiceProvider ConfigureServices(string settingsFile)
         {
-            var appConfig = new ConfigurationBuilder().AddJsonFile("config/settings.json").Build();
+            var config = new ConfigurationBuilder()
+                .AddJsonFile(settingsFile ?? DefaultSettingsFile)
+                .Build();
+
+            var logger = new LoggerConfiguration()
+                .ReadFrom
+                .Configuration(config)
+                .CreateLogger();
 
             var serviceCollection = new ServiceCollection();
 
-            serviceCollection.AddSingleton<IConfiguration>(appConfig);
-
-            serviceCollection.AddLogging(builder =>
-            {
-                builder.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(appConfig).CreateLogger());
-            });
-
-            serviceCollection.Configure<WorkflowExecutorOptions>(i => i.WorkflowFile = workflowFile);
-
-            serviceCollection.AddTransient<WorkflowExecutor>();
-            serviceCollection.AddSingleton<IModuleFactory, ModuleFactory>();
-            serviceCollection.AddSingleton<IModuleRepository, ModuleRepository>();
+            serviceCollection.AddLogging(builder => builder.AddSerilog(logger));
+            serviceCollection.AddBackupCore(i => config.GetSection("workflow").Bind(i));
 
             return serviceCollection.BuildServiceProvider();
         }

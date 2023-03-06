@@ -53,7 +53,7 @@ namespace BitJuice.Backup.Modules.Aggregators
             if (IsWindows && Path.IsPathRooted(path))
             {
                 var root = Path.GetPathRoot(path);
-                path = Path.GetRelativePath(root, path);
+                path = Path.GetRelativePath(root!, path);
                 path = Path.Combine(root.ToLower().Replace(":\\", "_drive"), path);
             }
             return path;

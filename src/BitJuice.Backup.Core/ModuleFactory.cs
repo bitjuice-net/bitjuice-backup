@@ -18,9 +18,9 @@ namespace BitJuice.Backup.Core
             this.moduleRepository = moduleRepository;
         }
 
-        public T Create<T>(IConfiguration config) where T : IModule
+        public T? Create<T>(IConfiguration config) where T : IModule
         {
-            var moduleName = config.GetSection(DefaultModuleNameKey)?.Value ?? config.GetSection(LegacyModuleNameKey)?.Value;
+            var moduleName = config.GetSection(DefaultModuleNameKey).Value ?? config.GetSection(LegacyModuleNameKey).Value;
             if (moduleName == null)
                 return default;
 
@@ -33,9 +33,9 @@ namespace BitJuice.Backup.Core
             return module;
         }
 
-        public IEnumerable<T> CreateList<T>(IConfiguration config) where T : IModule
+        public IEnumerable<T?> CreateList<T>(IConfiguration config) where T : IModule
         {
-            return config.GetChildren().Select(Create<T>);
+            return config.GetChildren().Select(Create<T>).ToList();
         }
     }
 }

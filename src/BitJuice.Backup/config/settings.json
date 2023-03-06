@@ -1,7 +1,10 @@
 {
-  "modules": [
-    "BitJuice.Backup.Modules"
-  ],
+  "workflow": {
+    "file": "config/workflow.json",
+    "assemblies": [
+      "BitJuice.Backup.Modules"
+    ]
+  },
   "serilog": {
     "MinimumLevel": "Information",
     "Using": [ "Serilog.Sinks.Console", "Serilog.Sinks.File" ],

@@ -8,10 +8,10 @@ namespace BitJuice.Backup.Core
     public class WorkflowExecutor
     {
         private readonly ILogger<WorkflowExecutor> logger;
-        private readonly IOptions<WorkflowExecutorOptions> options;
+        private readonly IOptions<BackupCoreOptions> options;
         private readonly IModuleFactory moduleFactory;
 
-        public WorkflowExecutor(ILogger<WorkflowExecutor> logger, IOptions<WorkflowExecutorOptions> options, IModuleFactory moduleFactory)
+        public WorkflowExecutor(ILogger<WorkflowExecutor> logger, IOptions<BackupCoreOptions> options, IModuleFactory moduleFactory)
         {
             this.logger = logger;
             this.options = options;
@@ -22,7 +22,7 @@ namespace BitJuice.Backup.Core
         {
             try
             {
-                var config = new ConfigurationBuilder().AddJsonFile(options.Value.WorkflowFile).Build();
+                var config = new ConfigurationBuilder().AddJsonFile(options.Value.File).Build();
                 var workflow = moduleFactory.Create<IWorkflow>(config);
                 await workflow.RunAsync();
             }

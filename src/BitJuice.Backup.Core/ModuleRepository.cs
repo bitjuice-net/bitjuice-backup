@@ -2,21 +2,21 @@
 using System.Text;
 using BitJuice.Backup.Infrastructure;
 using BitJuice.Backup.Model;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace BitJuice.Backup.Core
 {
     public class ModuleRepository : IModuleRepository
     {
         private readonly ILogger<ModuleRepository> logger;
-        private readonly IConfiguration configuration;
+        private readonly IOptions<BackupCoreOptions> options;
         private readonly Dictionary<string, Type> moduleInfos = new(StringComparer.InvariantCultureIgnoreCase);
         
-        public ModuleRepository(ILogger<ModuleRepository> logger, IConfiguration configuration)
+        public ModuleRepository(ILogger<ModuleRepository> logger, IOptions<BackupCoreOptions> options)
         {
             this.logger = logger;
-            this.configuration = configuration;
+            this.options = options;
 
             LoadModules();
         }
@@ -30,15 +30,15 @@ namespace BitJuice.Backup.Core
 
         private void LoadModules()
         {
-            foreach (var section in configuration.GetSection("modules").GetChildren())
+            foreach (var assemblyName in options.Value.Assemblies)
             {
                 try
                 {
-                    AddAssembly(Assembly.Load(new AssemblyName(section.Value)));
+                    AddAssembly(Assembly.Load(new AssemblyName(assemblyName)));
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarning(ex, $"Cannot load assembly '{section.Value}'");
+                    logger.LogWarning(ex, $"Cannot load assembly '{assemblyName}'");
                 }
             }
         }
@@ -53,7 +53,7 @@ namespace BitJuice.Backup.Core
         private void AddModule(string moduleName, Type moduleType)
         {
             if (moduleInfos.TryGetValue(moduleName, out var existing))
-                throw new Exception($"Cannot insert module '{moduleName}' of type 'type'. Module with the same name already exists of type '{existing}'");
+                throw new Exception($"Cannot insert module '{moduleName}' of type 'type'. Module with the same name with type '{existing}' already exists");
             logger.LogInformation($"Registering module '{moduleName}' with type '{moduleType.FullName}'");
             moduleInfos.Add(moduleName, moduleType);
         }

@@ -5,7 +5,7 @@ namespace BitJuice.Backup.Infrastructure
 {
     public class InvalidConfigException<TConfig> : Exception where TConfig : IModuleConfig
     {
-        public InvalidConfigException(string message) : base(message)
+        public InvalidConfigException(string message) : base($"{nameof(TConfig)}: {message}")
         {
         }
     }
