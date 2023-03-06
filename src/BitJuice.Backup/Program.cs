@@ -14,7 +14,7 @@ namespace BitJuice.Backup
             cronInstallCommand.SetHandler(CronCommands.Install);
 
             var cronUninstallCommand = new Command("uninstall");
-            cronInstallCommand.SetHandler(CronCommands.Uninstall);
+            cronUninstallCommand.SetHandler(CronCommands.Uninstall);
 
             var cronCommand = new Command("cron")
             {
