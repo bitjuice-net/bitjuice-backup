@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30011.22
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33414.496
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BitJuice.Backup", "src\BitJuice.Backup\BitJuice.Backup.csproj", "{4EDF98E1-EDB9-4936-ACE6-DC5C3B72D73D}"
 EndProject
@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BitJuice.Backup.Model", "sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BitJuice.Backup.Modules", "src\BitJuice.Backup.Modules\BitJuice.Backup.Modules.csproj", "{7765AE99-E7AE-4A45-BDA2-1332DB58F7A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitJuice.Backup.Infrastructure", "src\BitJuice.Backup.Infrastructure\BitJuice.Backup.Infrastructure.csproj", "{B399DE1B-7F06-4236-9700-FC594EEA5B5F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BitJuice.Backup.Infrastructure", "src\BitJuice.Backup.Infrastructure\BitJuice.Backup.Infrastructure.csproj", "{B399DE1B-7F06-4236-9700-FC594EEA5B5F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitJuice.Backup.Core", "src\BitJuice.Backup.Core\BitJuice.Backup.Core.csproj", "{AE3D21D7-DC26-4EA5-92B8-5045084AF9C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,6 +71,18 @@ Global
 		{B399DE1B-7F06-4236-9700-FC594EEA5B5F}.Release|x64.Build.0 = Release|Any CPU
 		{B399DE1B-7F06-4236-9700-FC594EEA5B5F}.Release|x86.ActiveCfg = Release|Any CPU
 		{B399DE1B-7F06-4236-9700-FC594EEA5B5F}.Release|x86.Build.0 = Release|Any CPU
+		{AE3D21D7-DC26-4EA5-92B8-5045084AF9C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE3D21D7-DC26-4EA5-92B8-5045084AF9C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE3D21D7-DC26-4EA5-92B8-5045084AF9C5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AE3D21D7-DC26-4EA5-92B8-5045084AF9C5}.Debug|x64.Build.0 = Debug|Any CPU
+		{AE3D21D7-DC26-4EA5-92B8-5045084AF9C5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AE3D21D7-DC26-4EA5-92B8-5045084AF9C5}.Debug|x86.Build.0 = Debug|Any CPU
+		{AE3D21D7-DC26-4EA5-92B8-5045084AF9C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE3D21D7-DC26-4EA5-92B8-5045084AF9C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE3D21D7-DC26-4EA5-92B8-5045084AF9C5}.Release|x64.ActiveCfg = Release|Any CPU
+		{AE3D21D7-DC26-4EA5-92B8-5045084AF9C5}.Release|x64.Build.0 = Release|Any CPU
+		{AE3D21D7-DC26-4EA5-92B8-5045084AF9C5}.Release|x86.ActiveCfg = Release|Any CPU
+		{AE3D21D7-DC26-4EA5-92B8-5045084AF9C5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
