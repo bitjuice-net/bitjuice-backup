@@ -86,7 +86,11 @@ namespace BitJuice.Backup.Modules.Storages
         {
             var clientSecrets = await GoogleClientSecrets.FromFileAsync(Config.CredentialsFile);
             var fileDataStore = new FileDataStore(Config.TokensDir, true);
-            return await GoogleWebAuthorizationBroker.AuthorizeAsync(clientSecrets.Secrets, Scopes, "user", CancellationToken.None, fileDataStore, new GoogleCodeReceiver());
+            var timeout = Task.Delay(TimeSpan.FromMinutes(3));
+            var task = GoogleWebAuthorizationBroker.AuthorizeAsync(clientSecrets.Secrets, Scopes, "user", CancellationToken.None, fileDataStore, new GoogleCodeReceiver());
+            if (await Task.WhenAny(task, timeout) == timeout)
+                throw new TimeoutException("GoogleDrive authentication failed.");
+            return task.Result;
         }
     }
 }
