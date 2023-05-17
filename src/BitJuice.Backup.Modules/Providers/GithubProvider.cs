@@ -10,9 +10,16 @@ namespace BitJuice.Backup.Modules.Providers
     {
         public IEnumerable<IDataItem> Get()
         {
-            var github = new GitHubClient(new ProductHeaderValue("BitJuice.Backup"))
+            var productHeader = new ProductHeaderValue("BitJuice.Backup");
+            var github = new GitHubClient(productHeader)
             {
-                Credentials = new Credentials(Config.Token, AuthenticationType.Bearer)
+                Credentials = Config.AuthType switch
+                {
+                    AuthenticationType.Anonymous => Credentials.Anonymous,
+                    _ => string.IsNullOrWhiteSpace(Config.Login)
+                        ? new Credentials(Config.Password, Config.AuthType)
+                        : new Credentials(Config.Login, Config.Password, Config.AuthType)
+                }
             };
             var repositories = github.Repository.GetAllForCurrent().Result;
             foreach (var repository in repositories)
