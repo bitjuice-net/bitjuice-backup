@@ -8,6 +8,7 @@ namespace BitJuice.Backup.Modules.Providers
     [ModuleName("github-provider")]
     public class GithubProvider: ModuleBase<GithubConfig>, IProvider
     {
+        // TODO: add async support
         public IEnumerable<IDataItem> Get()
         {
             var productHeader = new ProductHeaderValue("BitJuice.Backup");
@@ -21,7 +22,7 @@ namespace BitJuice.Backup.Modules.Providers
                         : new Credentials(Config.Login, Config.Password, Config.AuthType)
                 }
             };
-            var repositories = github.Repository.GetAllForCurrent().Result;
+            var repositories = github.Repository.GetAllForCurrent().GetAwaiter().GetResult();
             foreach (var repository in repositories)
                 yield return new GithubDataItem(github, repository);
         }

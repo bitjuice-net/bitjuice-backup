@@ -21,20 +21,14 @@ public class GithubDataItem : IDataItem
         VirtualPath = $"github/{repository.Owner.Login}/{repository.Name}.zip";
     }
 
+    // TODO: add async support
     public Stream GetStream()
     {
         var stream = new MemoryStream();
 
-        try
-        {
-            var url = $"{repository.HtmlUrl}/archive/refs/heads/{repository.DefaultBranch}.zip";
-            var response = client.Connection.Get<byte[]>(new Uri(url), new Dictionary<string, string>()).Result;
-            stream.Write(response.Body);
-        }
-        catch (Exception ex)
-        {
-            var aa = ex;
-        }
+        var url = $"{repository.HtmlUrl}/archive/refs/heads/{repository.DefaultBranch}.zip";
+        var response = client.Connection.GetRaw(new Uri(url), null).GetAwaiter().GetResult();
+        stream.Write(response.Body);
 
         stream.Seek(0, SeekOrigin.Begin);
         return stream;
