@@ -1,7 +1,9 @@
-﻿namespace BitJuice.Backup.Model
+﻿using System.Threading.Tasks;
+
+namespace BitJuice.Backup.Model
 {
     public interface IAction : IModule
     {
-        void Execute();
+        Task ExecuteAsync();
     }
 }

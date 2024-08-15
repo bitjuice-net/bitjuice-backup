@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using BitJuice.Backup.Infrastructure;
 using BitJuice.Backup.Model;
 using Microsoft.Extensions.Logging;
@@ -16,7 +17,7 @@ namespace BitJuice.Backup.Modules.Actions
             this.logger = logger;
         }
 
-        public void Execute()
+        public Task ExecuteAsync()
         {
             var startInfo = new ProcessStartInfo
             {
@@ -59,13 +60,15 @@ namespace BitJuice.Backup.Modules.Actions
                 if (process.ExitCode != 0)
                     throw new Exception($"Process exited with status: {process.ExitCode}");
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
-                if (!Config.ContinueOnError) 
+                if (!Config.ContinueOnError)
                     throw;
 
                 logger.LogWarning(exception.Message);
             }
+
+            return Task.CompletedTask;
         }
     }
 }

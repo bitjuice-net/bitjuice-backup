@@ -60,7 +60,7 @@ namespace BitJuice.Backup.Modules.Workflows
             {
                 logger.LogInformation("Executing pre-actions");
                 foreach (var action in preActions)
-                    action.Execute();
+                    await action.ExecuteAsync();
 
                 logger.LogInformation("Executing backup");
                 var items = providers.SelectMany(i => i.Get());
@@ -74,7 +74,7 @@ namespace BitJuice.Backup.Modules.Workflows
 
             logger.LogInformation("Executing post-actions");
             foreach (var action in postActions)
-                action.Execute();
+                await action.ExecuteAsync();
 
             logger.LogInformation("Workflow finished");
         }

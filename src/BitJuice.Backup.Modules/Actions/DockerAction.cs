@@ -19,7 +19,7 @@ namespace BitJuice.Backup.Modules.Actions
             this.logger = logger;
         }
 
-        public void Execute()
+        public async Task ExecuteAsync()
         {
             var config = string.IsNullOrWhiteSpace(Config.Endpoint) 
                 ? new DockerClientConfiguration() 
@@ -31,23 +31,23 @@ namespace BitJuice.Backup.Modules.Actions
             try
             {
                 var cts = new CancellationTokenSource();
-                
+
                 var commandTask = ExecuteCommand(client, cts.Token);
                 var timeoutTask = Task.Delay(Config.TimeoutMs, cts.Token);
 
-                Task.WaitAny(commandTask, timeoutTask);
+                var completedTask = await Task.WhenAny(commandTask, timeoutTask);
 
-                if (!commandTask.IsCompleted)
+                if (completedTask == timeoutTask)
                 {
                     cts.Cancel();
                     throw new Exception("Docker command reached maximum execution time, aborting.");
                 }
 
-                commandTask.GetAwaiter().GetResult();
+                await completedTask;
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
-                if (!Config.ContinueOnError) 
+                if (!Config.ContinueOnError)
                     throw;
 
                 logger.LogWarning(exception.Message);
@@ -56,7 +56,7 @@ namespace BitJuice.Backup.Modules.Actions
 
         private Task<bool> ExecuteCommand(DockerClient client, CancellationToken cancellationToken)
         {
-            if(string.Equals(Config.Command, "start", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(Config.Command, "start", StringComparison.OrdinalIgnoreCase))
                 return client.Containers.StartContainerAsync(Config.ContainerName, new ContainerStartParameters(), cancellationToken);
             if (string.Equals(Config.Command, "stop", StringComparison.OrdinalIgnoreCase))
                 return client.Containers.StopContainerAsync(Config.ContainerName, new ContainerStopParameters(), cancellationToken);
