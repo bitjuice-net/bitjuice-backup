@@ -22,7 +22,14 @@ namespace BitJuice.Backup.Core
         {
             try
             {
-                var config = new ConfigurationBuilder().AddJsonFile(options.Value.File).Build();
+                var ext = Path.GetExtension(options.Value.File);
+                var builder = new ConfigurationBuilder();
+                if (string.Equals(ext, ".json", StringComparison.OrdinalIgnoreCase))
+                    builder.AddJsonFile(options.Value.File);
+                if (string.Equals(ext, ".yml", StringComparison.OrdinalIgnoreCase) || string.Equals(ext, ".yaml", StringComparison.OrdinalIgnoreCase))
+                    builder.AddYamlFile(options.Value.File);
+                var config = builder.Build();
+
                 var workflow = moduleFactory.Create<IWorkflow>(config);
                 await workflow.RunAsync();
             }
