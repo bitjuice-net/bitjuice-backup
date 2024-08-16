@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using BitJuice.Backup.Infrastructure;
 using BitJuice.Backup.Model;
+using Microsoft.Extensions.Logging;
 using Octokit;
 
 namespace BitJuice.Backup.Modules.Providers
@@ -8,6 +9,13 @@ namespace BitJuice.Backup.Modules.Providers
     [ModuleName("github-provider")]
     public class GithubProvider: ModuleBase<GithubConfig>, IProvider
     {
+        private readonly ILogger<GithubProvider> logger;
+
+        public GithubProvider(ILogger<GithubProvider> logger)
+        {
+            this.logger = logger;
+        }
+
         public async IAsyncEnumerable<IDataItem> GetAsync()
         {
             var productHeader = new ProductHeaderValue("BitJuice.Backup");
@@ -23,7 +31,10 @@ namespace BitJuice.Backup.Modules.Providers
             };
             var repositories = await github.Repository.GetAllForCurrent();
             foreach (var repository in repositories)
+            {
+                logger.LogInformation("Processing repository: {repository}", repository.Name);
                 yield return new GithubDataItem(github, repository);
+            }
         }
     }
 }
