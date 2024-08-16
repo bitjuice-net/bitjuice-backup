@@ -4,6 +4,6 @@ namespace BitJuice.Backup.Model
 {
     public interface IProvider : IModule
     {
-        IEnumerable<IDataItem> Get();
+        IAsyncEnumerable<IDataItem> GetAsync();
     }
 }

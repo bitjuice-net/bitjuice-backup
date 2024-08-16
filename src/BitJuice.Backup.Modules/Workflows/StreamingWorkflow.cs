@@ -63,8 +63,8 @@ namespace BitJuice.Backup.Modules.Workflows
                     await action.ExecuteAsync();
 
                 logger.LogInformation("Executing backup");
-                var items1 = SelectMany(providers.Select(i => i.Get()));
-                var items = aggregator.Aggregate(items1);
+                var items = GetItemsAsync(providers);
+                items = aggregator.Aggregate(items);
                 await storage.PushAsync(items);
             }
             catch (Exception exception)
@@ -79,16 +79,11 @@ namespace BitJuice.Backup.Modules.Workflows
             logger.LogInformation("Workflow finished");
         }
 
-        private async IAsyncEnumerable<IDataItem> SelectMany(IEnumerable<IEnumerable<IDataItem>> lists)
+        private async IAsyncEnumerable<IDataItem> GetItemsAsync(IEnumerable<IProvider> providers)
         {
-            await Task.CompletedTask;
-            foreach (var list in lists)
-            {
-                foreach (var item in list)
-                {
-                    yield return item;
-                }
-            }
+            foreach (var provider in providers)
+            await foreach (var item in provider.GetAsync())
+                yield return item;
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using BitJuice.Backup.Infrastructure;
 using BitJuice.Backup.Model;
 using Microsoft.Extensions.Configuration;
@@ -31,8 +32,9 @@ namespace BitJuice.Backup.Modules.Providers
             rewriteEngine = new RewriteEngine(Config.Rewrites ?? Enumerable.Empty<RewriteRule>());
         }
 
-        public IEnumerable<IDataItem> Get()
+        public async IAsyncEnumerable<IDataItem> GetAsync()
         {
+            await Task.CompletedTask;
             foreach (var path in Config.Paths)
             {
                 logger.LogInformation($"Reading content of {path}");
