@@ -6,11 +6,11 @@
 
   <ItemGroup>
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
-    <PackageReference Include="Octokit" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Octokit" Version="13.0.1" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
-    <PackageReference Include="Google.Apis.Drive.v3" Version="1.60.0.3034" />
+    <PackageReference Include="Google.Apis.Drive.v3" Version="1.68.0.3498" />
   </ItemGroup>
 
   <ItemGroup>
