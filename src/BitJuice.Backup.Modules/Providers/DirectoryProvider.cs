@@ -28,7 +28,7 @@ namespace BitJuice.Backup.Modules.Providers
             if (Config.Excludes != null && Config.Excludes.Any())
                 Config.Excludes = Config.Excludes.Select(i => i.TrimEnd('/', '\\')).ToList();
 
-            rewriteEngine = new RewriteEngine(Config.Rewrites);
+            rewriteEngine = new RewriteEngine(Config.Rewrites ?? Enumerable.Empty<RewriteRule>());
         }
 
         public IEnumerable<IDataItem> Get()

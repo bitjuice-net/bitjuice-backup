@@ -18,10 +18,7 @@ namespace BitJuice.Backup.Modules.Aggregators
         public IEnumerable<IDataItem> Aggregate(IEnumerable<IDataItem> items)
         {
             var builder = ActivatorUtilities.CreateInstance<TBuilder>(serviceProvider, items);
-            return new List<IDataItem>
-            {
-                new ArchiveDataItem(Config.Filename, builder)
-            };
+            yield return new ArchiveDataItem(Config.Filename, builder);
         }
     }
 }
