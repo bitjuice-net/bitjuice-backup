@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BitJuice.Backup.Modules.Aggregators
 {
@@ -22,9 +24,14 @@ namespace BitJuice.Backup.Modules.Aggregators
             this.builder = builder;
         }
 
+        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            return await builder.Read(buffer, offset, count);
+        }
+
         public override int Read(byte[] buffer, int offset, int count)
         {
-            return builder.Read(buffer, offset, count);
+            throw new NotSupportedException();
         }
 
         public override void Write(byte[] buffer, int offset, int count)

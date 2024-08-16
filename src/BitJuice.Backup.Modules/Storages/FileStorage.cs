@@ -9,9 +9,9 @@ namespace BitJuice.Backup.Modules.Storages
     [ModuleName("file-storage")]
     public class FileStorage : ModuleBase<FileConfig>, IStorage
     {
-        public async Task PushAsync(IEnumerable<IDataItem> items)
+        public async Task PushAsync(IAsyncEnumerable<IDataItem> items)
         {
-            foreach (var item in items)
+            await foreach (var item in items)
             {
                 await using var inputStream = item.GetStream();
                 var path = Config.Path ?? string.Empty;

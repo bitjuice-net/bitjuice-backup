@@ -29,7 +29,7 @@ namespace BitJuice.Backup.Modules.Storages
             this.logger = logger;
         }
 
-        public async Task PushAsync(IEnumerable<IDataItem> items)
+        public async Task PushAsync(IAsyncEnumerable<IDataItem> items)
         {
             var credential = await AuthorizeAsync();
 
@@ -40,7 +40,7 @@ namespace BitJuice.Backup.Modules.Storages
                 ApplicationName = ApplicationName
             });
 
-            foreach (var item in items)
+            await foreach (var item in items)
             {
                 logger.LogInformation($"Starting upload of {item.Name} to Google Drive");
 

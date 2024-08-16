@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using BitJuice.Backup.Model;
 using Microsoft.Extensions.Logging;
 
@@ -11,7 +12,7 @@ namespace BitJuice.Backup.Modules.Aggregators
         private const int DefaultBufferSize = 10 * 1024 * 1024;
         
         private readonly byte[] readBuffer;
-        private readonly IEnumerator<IDataItem> enumerator;
+        private readonly IAsyncEnumerator<IDataItem> enumerator;
         private ArchiveBuilderState currentState = ArchiveBuilderState.OpenArchive;
 
         private ILogger<ArchiveBuilder> Logger { get; }
@@ -21,21 +22,21 @@ namespace BitJuice.Backup.Modules.Aggregators
         protected long ContentSize { get; private set; }
         protected long ContentRead { get; private set; }
 
-        protected ArchiveBuilder(ILogger<ArchiveBuilder> logger, IEnumerable<IDataItem> items, int fileBufferSize = DefaultBufferSize)
+        protected ArchiveBuilder(ILogger<ArchiveBuilder> logger, IAsyncEnumerable<IDataItem> items, int fileBufferSize = DefaultBufferSize)
         {
             Logger = logger;
-            enumerator = items.GetEnumerator();
+            enumerator = items.GetAsyncEnumerator();
             readBuffer = new byte[fileBufferSize];
             OutputStream = new ProxyStream(fileBufferSize);
         }
 
-        public int Read(byte[] buffer, in int offset, in int count)
+        public async Task<int> Read(byte[] buffer, int offset, int count)
         {
-            FetchBuffer();
+            await FetchBufferAsync();
             return OutputStream.Read(buffer, offset, count);
         }
 
-        private void FetchBuffer()
+        private async Task FetchBufferAsync()
         {
             if (OutputStream.Available > 0)
                 return;
@@ -43,12 +44,12 @@ namespace BitJuice.Backup.Modules.Aggregators
             OutputStream.Clear();
 
             while (OutputStream.Length <= 0 && currentState != ArchiveBuilderState.Done)
-                currentState = HandleStatus(currentState);
+                currentState = await HandleStatusAsync(currentState);
 
             OutputStream.Rewind();
         }
 
-        private ArchiveBuilderState HandleStatus(ArchiveBuilderState state)
+        private async Task<ArchiveBuilderState> HandleStatusAsync(ArchiveBuilderState state)
         {
             switch (state)
             {
@@ -57,7 +58,7 @@ namespace BitJuice.Backup.Modules.Aggregators
                     return ArchiveBuilderState.OpenFile;
 
                 case ArchiveBuilderState.OpenFile:
-                    if (!enumerator.MoveNext())
+                    if (!await enumerator.MoveNextAsync())
                         return ArchiveBuilderState.CloseArchive;
 
                     try

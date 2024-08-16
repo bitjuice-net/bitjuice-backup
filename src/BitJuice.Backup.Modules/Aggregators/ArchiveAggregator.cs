@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using BitJuice.Backup.Infrastructure;
 using BitJuice.Backup.Model;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,8 +16,9 @@ namespace BitJuice.Backup.Modules.Aggregators
             this.serviceProvider = serviceProvider;
         }
 
-        public IEnumerable<IDataItem> Aggregate(IEnumerable<IDataItem> items)
+        public async IAsyncEnumerable<IDataItem> Aggregate(IAsyncEnumerable<IDataItem> items)
         {
+            await Task.CompletedTask;
             var builder = ActivatorUtilities.CreateInstance<TBuilder>(serviceProvider, items);
             yield return new ArchiveDataItem(Config.Filename, builder);
         }

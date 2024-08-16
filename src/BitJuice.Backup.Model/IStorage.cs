@@ -5,6 +5,6 @@ namespace BitJuice.Backup.Model
 {
     public interface IStorage : IModule
     {
-        Task PushAsync(IEnumerable<IDataItem> items);
+        Task PushAsync(IAsyncEnumerable<IDataItem> items);
     }
 }

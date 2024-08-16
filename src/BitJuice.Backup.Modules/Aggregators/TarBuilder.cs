@@ -10,7 +10,7 @@ namespace BitJuice.Backup.Modules.Aggregators
     {
         private TarOutputStream tarStream;
 
-        public TarBuilder(ILogger<ArchiveBuilder> logger, IEnumerable<IDataItem> items) : base(logger, items)
+        public TarBuilder(ILogger<ArchiveBuilder> logger, IAsyncEnumerable<IDataItem> items) : base(logger, items)
         {
         }
 

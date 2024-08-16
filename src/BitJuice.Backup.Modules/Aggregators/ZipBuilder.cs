@@ -15,7 +15,7 @@ namespace BitJuice.Backup.Modules.Aggregators
         private ZipArchiveEntry currentEntry;
         private Stream currentEntryStream;
 
-        public ZipBuilder(ILogger<ArchiveBuilder> logger, IEnumerable<IDataItem> items) : base(logger, items)
+        public ZipBuilder(ILogger<ArchiveBuilder> logger, IAsyncEnumerable<IDataItem> items) : base(logger, items)
         {
         }
 

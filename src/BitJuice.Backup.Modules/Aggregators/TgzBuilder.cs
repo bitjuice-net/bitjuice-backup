@@ -12,7 +12,7 @@ namespace BitJuice.Backup.Modules.Aggregators
         private GZipStream gzipStream;
         private TarOutputStream tarStream;
 
-        public TgzBuilder(ILogger<ArchiveBuilder> logger, IEnumerable<IDataItem> items) : base(logger, items)
+        public TgzBuilder(ILogger<ArchiveBuilder> logger, IAsyncEnumerable<IDataItem> items) : base(logger, items)
         {
         }
 
