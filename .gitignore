@@ -5,4 +5,4 @@ bin/
 obj/
 publish/
 
-/src/BitJuice.Backup/config/workflow.json
+/src/BitJuice.Backup/config/workflow.yml

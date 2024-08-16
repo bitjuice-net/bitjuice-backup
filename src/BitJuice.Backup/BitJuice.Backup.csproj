@@ -29,7 +29,7 @@
     <None Update="config\settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="config\workflow.json">
+    <None Update="config\workflow.yml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -1,6 +1,6 @@
 {
   "workflow": {
-    "file": "config/workflow.json",
+    "file": "config/workflow.yml",
     "assemblies": [
       "BitJuice.Backup.Modules"
     ]
