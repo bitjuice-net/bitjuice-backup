@@ -1,32 +1,32 @@
-'@module': multi-workflow
+module: multi-workflow
 workflows:
-  - '@module': streaming-workflow
+  - module: streaming-workflow
     description: Backup home directories to cloud 1
     providers:
-      - '@module': directory-provider
+      - module: directory-provider
         paths:
           - /home/user
         rewrites:
           - from: /home
             to: /users
     aggregator:
-      '@module': tgz-aggregator
+      module: tgz-aggregator
       filename: backup.tar.gz
     storage:
-      '@module': file-storage
+      module: file-storage
       path: /backup
-  - '@module': streaming-workflow
+  - module: streaming-workflow
     description: Backup home directories to cloud 2
     providers:
-      - '@module': directory-provider
+      - module: directory-provider
         paths:
           - /home/user
         rewrites:
           - from: /home
             to: /users
     aggregator:
-      '@module': tgz-aggregator
+      module: tgz-aggregator
       filename: backup.tar.gz
     storage:
-      '@module': file-storage
+      module: file-storage
       path: /backup
