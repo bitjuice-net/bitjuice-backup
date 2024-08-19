@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using BitJuice.Backup.Infrastructure;
@@ -21,29 +23,34 @@ namespace BitJuice.Backup.Modules.Actions
 
         public async Task ExecuteAsync()
         {
-            var config = string.IsNullOrWhiteSpace(Config.Endpoint) 
-                ? new DockerClientConfiguration() 
+            var config = string.IsNullOrWhiteSpace(Config.Endpoint)
+                ? new DockerClientConfiguration()
                 : new DockerClientConfiguration(new Uri(Config.Endpoint));
             var client = config.CreateClient();
-
-            logger.LogInformation($"Executing docker command: docker {Config.Command} {Config.ContainerName}");
 
             try
             {
                 var cts = new CancellationTokenSource();
 
-                var commandTask = ExecuteCommand(client, cts.Token);
                 var timeoutTask = Task.Delay(Config.TimeoutMs, cts.Token);
 
-                var completedTask = await Task.WhenAny(commandTask, timeoutTask);
+                var nameRegex = new Regex($"^/{string.Join(".*?", Config.ContainerName.Split('*').Select(Regex.Escape))}$");
+                var containers = await client.Containers.ListContainersAsync(new ContainersListParameters { All = true }, cts.Token);
+                var filteredContainers = containers.Where(i => i.Names.Any(j => nameRegex.IsMatch(j))).ToList();
 
-                if (completedTask == timeoutTask)
+                foreach (var container in filteredContainers)
                 {
-                    cts.Cancel();
-                    throw new Exception("Docker command reached maximum execution time, aborting.");
-                }
+                    logger.LogInformation($"Executing docker command: docker {Config.Command} {container.Names.First()} [{container.ID}]");
+                    var commandTask = ExecuteCommand(client, container.ID, cts.Token);
+                    var completedTask = await Task.WhenAny(commandTask, timeoutTask);
+                    if (completedTask == timeoutTask)
+                    {
+                        cts.Cancel();
+                        throw new Exception("Docker command reached maximum execution time, aborting.");
+                    }
 
-                await completedTask;
+                    await completedTask;
+                }
             }
             catch (Exception exception)
             {
@@ -54,13 +61,11 @@ namespace BitJuice.Backup.Modules.Actions
             }
         }
 
-        private Task<bool> ExecuteCommand(DockerClient client, CancellationToken cancellationToken)
+        private Task<bool> ExecuteCommand(DockerClient client, string id, CancellationToken cancellationToken) => Config.Command switch
         {
-            if (string.Equals(Config.Command, "start", StringComparison.OrdinalIgnoreCase))
-                return client.Containers.StartContainerAsync(Config.ContainerName, new ContainerStartParameters(), cancellationToken);
-            if (string.Equals(Config.Command, "stop", StringComparison.OrdinalIgnoreCase))
-                return client.Containers.StopContainerAsync(Config.ContainerName, new ContainerStopParameters(), cancellationToken);
-            throw new ArgumentOutOfRangeException(nameof(Config.Command), $"Invalid command: {Config.Command}");
-        }
+            DockerActionCommand.Start => client.Containers.StartContainerAsync(id, new ContainerStartParameters(), cancellationToken),
+            DockerActionCommand.Stop => client.Containers.StopContainerAsync(id, new ContainerStopParameters(), cancellationToken),
+            _ => throw new ArgumentOutOfRangeException(nameof(Config.Command), $"Invalid command: {Config.Command}")
+        };
     }
 }
