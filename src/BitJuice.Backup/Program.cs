@@ -1,4 +1,6 @@
 ﻿using System.CommandLine;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using BitJuice.Backup.Commands;
 
@@ -32,6 +34,15 @@ namespace BitJuice.Backup
             };
 
             await rootCommand.InvokeAsync(args);
+        }
+
+        private static string GetVersion()
+        {
+            var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+            var versionAttribute = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+            return versionAttribute is not null 
+                ? versionAttribute.InformationalVersion.Split('+').FirstOrDefault() ?? string.Empty 
+                : assembly.GetName().Version?.ToString() ?? string.Empty;
         }
     }
 }
