@@ -1,0 +1,50 @@
+name: Publish
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  publish:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Publish
+      run: |
+        dotnet publish --no-restore -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o publish/linux-x64 src/BitJuice.Backup/BitJuice.Backup.csproj
+        zip publish/linux-x64.zip publish/linux-x64/*
+        dotnet publish --no-restore -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish/win-x64 src/BitJuice.Backup/BitJuice.Backup.csproj
+        zip publish/win-x64.zip publish/win-x64/*
+
+    - name: Create release
+      run: |
+        ASSETS=("publish/linux-x64.zip" "publish/win-x64.zip")
+        RELEASE_RESPONSE=$(curl -L \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          ${{ env.GITHUB_SERVER_URL }}/${{ env.GITHUB_REPOSITORY }}/releases \
+          -d '{"tag_name":"${{ env.GITHUB_REF_NAME }}","target_commitish":"master","name":"${{ env.GITHUB_REF_NAME }}","body":"Automatic release: ${{ env.GITHUB_REF_NAME }}","draft":false,"prerelease":false,"generate_release_notes":false}')
+        UPLOAD_URL=$(echo $RELEASE_RESPONSE | grep -oP '"upload_url": "\K[^"]+' | sed -e "s/{?name,label}//")
+        for asset in "${ASSETS[@]}"; do
+          FILENAME=$(basename "$asset")
+          curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "Content-Type: application/octet-stream" \
+            "$UPLOAD_URL?name=$FILENAME" \
+            --data-binary @"$asset"
+        done
