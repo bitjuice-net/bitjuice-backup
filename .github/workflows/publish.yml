@@ -1,50 +1,43 @@
 name: Publish
 
 on:
-  push:
-    # Sequence of patterns matched against refs/tags
-    tags:
-      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  release:
+    types: [ created ]
 
 jobs:
   publish:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    - name: Restore dependencies
-      run: dotnet restore
     - name: Publish
       run: |
-        dotnet publish --no-restore -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o publish/linux-x64 src/BitJuice.Backup/BitJuice.Backup.csproj
-        zip publish/linux-x64.zip publish/linux-x64/*
-        dotnet publish --no-restore -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish/win-x64 src/BitJuice.Backup/BitJuice.Backup.csproj
-        zip publish/win-x64.zip publish/win-x64/*
-
-    - name: Create release
-      run: |
-        ASSETS=("publish/linux-x64.zip" "publish/win-x64.zip")
-        RELEASE_RESPONSE=$(curl -L \
-          -X POST \
-          -H "Accept: application/vnd.github+json" \
+        TARGETS=("linux-x64" "win-x64")
+        for target in "${TARGETS[@]}"; do
+          dotnet publish -c Release -r $target --self-contained true -p:PublishSingleFile=true -p:Version=${GITHUB_REF_NAME:1} -o publish/$target src/BitJuice.Backup/BitJuice.Backup.csproj
+          cd publish/$target
+          zip -r ../$target.zip ./*
+          cd ../..
+        done
+        echo "Getting release for tag: $GITHUB_REF_NAME"
+        RELEASE_RESPONSE=$(curl -Ls \
           -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          ${{ env.GITHUB_SERVER_URL }}/${{ env.GITHUB_REPOSITORY }}/releases \
-          -d '{"tag_name":"${{ env.GITHUB_REF_NAME }}","target_commitish":"master","name":"${{ env.GITHUB_REF_NAME }}","body":"Automatic release: ${{ env.GITHUB_REF_NAME }}","draft":false,"prerelease":false,"generate_release_notes":false}')
+          -H "Accept: application/vnd.github+json" \
+          -H "Content-Type: application/vnd.github+json" \
+          "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$GITHUB_REF_NAME")
+        RELEASE_ID=$(echo $RELEASE_RESPONSE | grep -oP '"id":\s?\K\d+' | head -n 1)
         UPLOAD_URL=$(echo $RELEASE_RESPONSE | grep -oP '"upload_url": "\K[^"]+' | sed -e "s/{?name,label}//")
-        for asset in "${ASSETS[@]}"; do
-          FILENAME=$(basename "$asset")
+        echo "Release ID: $RELEASE_ID"
+        for TARGET in "${TARGETS[@]}"; do
+          FILENAME="$TARGET.zip" 
+          echo "Uploading $FILENAME"
           curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "Accept: application/vnd.github+json" \
             -H "Content-Type: application/octet-stream" \
-            "$UPLOAD_URL?name=$FILENAME" \
-            --data-binary @"$asset"
+            --data-binary @"publish/$FILENAME" \
+            "$UPLOAD_URL?name=$FILENAME"
         done
