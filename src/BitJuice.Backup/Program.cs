@@ -1,6 +1,4 @@
 ﻿using System.CommandLine;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using BitJuice.Backup.Commands;
 
@@ -10,7 +8,10 @@ namespace BitJuice.Backup
     {
         public static async Task Main(string[] args)
         {
-            var configOption = new Option<string>(new[] { "-c", "--config" }, "Add configuration file.");
+            var updateActionOption = new Option<string>(["-a", "--action"]) { IsHidden = true };
+            var updateProcessIdOption = new Option<int>(["-pid", "--processId"]) { IsHidden = true, };
+            var updateCommand = new Command("update"){ updateActionOption, updateProcessIdOption };
+            updateCommand.SetHandler(UpdateCommands.Update, updateActionOption, updateProcessIdOption);
 
             var cronInstallCommand = new Command("install");
             cronInstallCommand.SetHandler(CronCommands.Install);
@@ -24,25 +25,18 @@ namespace BitJuice.Backup
                 cronUninstallCommand
             };
 
+            var configOption = new Option<string>(["-c", "--config"], "Add configuration file.");
             var executeCommand = new Command("execute") {configOption};
             executeCommand.SetHandler(AppCommands.Execute, configOption);
 
             var rootCommand = new RootCommand("Backup Utility")
             {
+                updateCommand,
                 cronCommand,
                 executeCommand
             };
 
             await rootCommand.InvokeAsync(args);
-        }
-
-        private static string GetVersion()
-        {
-            var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
-            var versionAttribute = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-            return versionAttribute is not null 
-                ? versionAttribute.InformationalVersion.Split('+').FirstOrDefault() ?? string.Empty 
-                : assembly.GetName().Version?.ToString() ?? string.Empty;
         }
     }
 }
