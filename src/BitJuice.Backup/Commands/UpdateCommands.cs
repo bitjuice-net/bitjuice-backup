@@ -1,12 +1,13 @@
-﻿using System;
+﻿using BitJuice.Backup.Model.Update;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Reflection;
-using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
 namespace BitJuice.Backup.Commands
@@ -15,57 +16,91 @@ namespace BitJuice.Backup.Commands
     {
         private const string updateDirName = "update";
         private const string updateZipName = "update.zip";
+        private const string latestReleaseUrl = "https://api.github.com/repos/bitjuice-net/bitjuice-backup/releases/latest";
 
-        public static async Task Update(string action, int processId)
+        public static async Task Update(int stage, int processId)
         {
-            if (action == "replace")
+            switch (stage)
             {
-                Console.WriteLine("Updating files");
-
-                await WaitForProcess(processId);
-
-                var currentDir = new DirectoryInfo(AppContext.BaseDirectory);
-                var parentDir = currentDir.Parent;
-                var oldFiles = parentDir.EnumerateFiles("BitJuice.Backup*").ToList();
-                foreach (var fileInfo in oldFiles)
-                {
-                    fileInfo.Delete();
-                }
-                var newFiles = currentDir.EnumerateFiles("BitJuice.Backup*");
-                foreach (var fileInfo in newFiles)
-                {
-                    fileInfo.CopyTo(Path.Combine(parentDir.FullName, fileInfo.Name));
-                }
-
-                StartProcess("..", "cleanup");
-            }
-            else if (action == "cleanup")
-            {
-                Console.WriteLine("Cleaning up");
-
-                await WaitForProcess(processId);
-
-                var updateDir = new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, updateDirName));
-                updateDir.Delete(true);
-                var updateFile = new FileInfo(Path.Combine(AppContext.BaseDirectory, updateZipName));
-                updateFile.Delete();
-
-                Console.WriteLine("Update completed");
-            }
-            else
-            {
-                var currentVersion = GetCurrentVersion();
-                var latestVersion = await GetLatestVersionAsync();
-                if (latestVersion > currentVersion)
-                {
-                    Console.WriteLine($"New version available: {latestVersion}");
-                    await DownloadAsync();
-                    StartProcess(updateDirName, "replace");
-                }
+                case 0:
+                    await UpdateStage1(stage, processId);
+                    break;
+                case 1:
+                    await UpdateStage2(stage, processId);
+                    break;
+                case 2:
+                    await UpdateStage3(stage, processId);
+                    break;
             }
         }
 
-        private static async Task WaitForProcess(int processId)
+        private static async Task UpdateStage1(int stage, int processId)
+        {
+            var currentVersion = GetCurrentVersion();
+            var latestVersion = await GetLatestVersionAsync();
+            if (latestVersion <= currentVersion)
+                return;
+
+            Console.WriteLine($"New version available: {latestVersion}");
+            await DownloadUpdateAsync();
+            StartStageProcess(stage + 1, updateDirName);
+        }
+
+        private static async Task UpdateStage2(int stage, int processId)
+        {
+            Console.WriteLine("Updating files");
+
+            await WaitForStageProcess(processId);
+
+            var currentDir = new DirectoryInfo(AppContext.BaseDirectory);
+            var parentDir = currentDir.Parent;
+            var oldFiles = parentDir.EnumerateFiles("BitJuice.Backup*");
+            foreach (var fileInfo in oldFiles)
+            {
+                fileInfo.Delete();
+            }
+            var newFiles = currentDir.EnumerateFiles("BitJuice.Backup*");
+            foreach (var fileInfo in newFiles)
+            {
+                fileInfo.CopyTo(Path.Combine(parentDir.FullName, fileInfo.Name));
+            }
+
+            StartStageProcess(stage + 1, "..");
+        }
+
+        private static async Task UpdateStage3(int stage, int processId)
+        {
+            Console.WriteLine("Cleaning up");
+
+            await WaitForStageProcess(processId);
+
+            var updateDir = new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, updateDirName));
+            if (updateDir.Exists)
+                updateDir.Delete(true);
+            
+            Console.WriteLine("Update completed");
+        }
+
+        private static void StartStageProcess(int stage, string directory)
+        {
+            var currentProcessId = Process.GetCurrentProcess().Id;
+            var workingDirectory = Path.Combine(AppContext.BaseDirectory, directory);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = Path.Combine(workingDirectory, "Bitjuice.Backup.exe"),
+                WorkingDirectory = workingDirectory,
+                ArgumentList =
+                {
+                    "update",
+                    "--stage",
+                    stage.ToString(),
+                    "--processId",
+                    currentProcessId.ToString()
+                }
+            });
+        }
+
+        private static async Task WaitForStageProcess(int processId)
         {
             try
             {
@@ -73,30 +108,10 @@ namespace BitJuice.Backup.Commands
                 if (!process.HasExited)
                     await process.WaitForExitAsync();
             }
-            catch 
+            catch
             {
                 // Ignore
             }
-        }
-
-        private static void StartProcess(string directory, string action)
-        {
-            var currentProcessId = Process.GetCurrentProcess().Id;
-            var dir = Path.Combine(AppContext.BaseDirectory, directory);
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = Path.Combine(dir, "Bitjuice.Backup.exe"),
-                WorkingDirectory = dir,
-                ArgumentList =
-                {
-                    "update",
-                    "--action",
-                    action,
-                    "--processId",
-                    currentProcessId.ToString()
-                }
-            };
-            Process.Start(startInfo);
         }
 
         private static Version GetCurrentVersion()
@@ -113,13 +128,11 @@ namespace BitJuice.Backup.Commands
         {
             using var client = new HttpClient();
             client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Bitjuice.Backup", "1.0.0"));
-            var jsonString = await client.GetStringAsync("https://api.github.com/repos/bitjuice-net/bitjuice-backup/releases/latest");
-            var jsonObject = JsonNode.Parse(jsonString);
-            var versionString = jsonObject["tag_name"].GetValue<string>().Substring(1);
-            return Version.Parse(versionString);
+            var release = await client.GetFromJsonAsync<GithubRelease>(latestReleaseUrl);
+            return Version.Parse(release.TagName.Substring(1));
         }
 
-        private static async Task DownloadAsync()
+        private static async Task DownloadUpdateAsync()
         {
             Console.WriteLine("Downloading update");
 
@@ -127,14 +140,13 @@ namespace BitJuice.Backup.Commands
             
             using var client = new HttpClient();
             client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Bitjuice.Backup", "1.0.0"));
-            var jsonString = await client.GetStringAsync("https://api.github.com/repos/bitjuice-net/bitjuice-backup/releases/latest");
-            var jsonObject = JsonNode.Parse(jsonString);
-            var assets = jsonObject["assets"].AsArray();
-            var asset = assets.SingleOrDefault(i => string.Equals(i["name"].GetValue<string>(), assetName, StringComparison.OrdinalIgnoreCase));
-            var downloadUrl = asset["browser_download_url"].GetValue<string>();
-            await using var stream = await client.GetStreamAsync(downloadUrl);
-            await using var file = File.OpenWrite(updateZipName);
-            await stream.CopyToAsync(file);
+            var release = await client.GetFromJsonAsync<GithubRelease>(latestReleaseUrl);
+            var asset = release.Assets.SingleOrDefault(i => string.Equals(i.Name, assetName, StringComparison.OrdinalIgnoreCase));
+            await using (var file = File.OpenWrite(updateZipName))
+            {
+                await using var stream = await client.GetStreamAsync(asset.BrowserDownloadUrl);
+                await stream.CopyToAsync(file);
+            }
 
             var updateDir = new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, updateDirName));
             if (updateDir.Exists)
@@ -142,6 +154,10 @@ namespace BitJuice.Backup.Commands
 
             Console.WriteLine("Extracting update");
             ZipFile.ExtractToDirectory(updateZipName, updateDirName);
+
+            var updateFile = new FileInfo(Path.Combine(AppContext.BaseDirectory, updateZipName));
+            if (updateFile.Exists)
+                updateFile.Delete();
         }
 
         private static string GetAssetName()
