@@ -8,10 +8,10 @@ namespace BitJuice.Backup
     {
         public static async Task Main(string[] args)
         {
-            var updateActionOption = new Option<string>(["-a", "--action"]) { IsHidden = true };
+            var updateStageOption = new Option<int>(["-s", "--stage"]) { IsHidden = true };
             var updateProcessIdOption = new Option<int>(["-pid", "--processId"]) { IsHidden = true, };
-            var updateCommand = new Command("update"){ updateActionOption, updateProcessIdOption };
-            updateCommand.SetHandler(UpdateCommands.Update, updateActionOption, updateProcessIdOption);
+            var updateCommand = new Command("update"){ updateStageOption, updateProcessIdOption };
+            updateCommand.SetHandler(UpdateCommands.Update, updateStageOption, updateProcessIdOption);
 
             var cronInstallCommand = new Command("install");
             cronInstallCommand.SetHandler(CronCommands.Install);
