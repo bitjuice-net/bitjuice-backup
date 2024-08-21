@@ -83,11 +83,11 @@ namespace BitJuice.Backup.Commands
 
         private static void StartStageProcess(int stage, string directory)
         {
-            var currentProcessId = Process.GetCurrentProcess().Id;
+            var currentProcess = Process.GetCurrentProcess();
             var workingDirectory = Path.Combine(AppContext.BaseDirectory, directory);
             Process.Start(new ProcessStartInfo
             {
-                FileName = Path.Combine(workingDirectory, "Bitjuice.Backup.exe"),
+                FileName = Path.Combine(workingDirectory, currentProcess.MainModule.ModuleName),
                 WorkingDirectory = workingDirectory,
                 ArgumentList =
                 {
@@ -95,7 +95,7 @@ namespace BitJuice.Backup.Commands
                     "--stage",
                     stage.ToString(),
                     "--processId",
-                    currentProcessId.ToString()
+                    currentProcess.Id.ToString()
                 }
             });
         }
