@@ -40,9 +40,19 @@ namespace BitJuice.Backup.Commands
             var currentVersion = GetCurrentVersion();
             var latestVersion = await GetLatestVersionAsync();
             if (latestVersion <= currentVersion)
+            {
+                Console.WriteLine("No new version available");
                 return;
+            }
 
             Console.WriteLine($"New version available: {latestVersion}");
+            Console.Write("Do you want to update [y/N]: ");
+            var line = Console.ReadLine();
+            if (line?.ToLower() != "y")
+            {
+                return;
+            }
+
             await DownloadUpdateAsync();
             StartStageProcess(stage + 1, updateDirName);
         }
