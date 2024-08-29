@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace BitJuice.Backup.Commands
@@ -137,13 +138,23 @@ namespace BitJuice.Backup.Commands
             Console.WriteLine("Downloading update");
 
             var assetName = GetAssetName();
-            if (GetSelfContained()) 
-                assetName += "-sc";
             
             using var client = new HttpClient();
             client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Bitjuice.Backup", "1.0.0"));
             var release = await client.GetFromJsonAsync<GithubRelease>(latestReleaseUrl);
             var asset = release.Assets.SingleOrDefault(i => string.Equals(i.Name, assetName, StringComparison.OrdinalIgnoreCase));
+
+            if (asset is null)
+            {
+                Console.WriteLine("Cannot find asset: " + assetName);
+                Console.WriteLine("Available assets:");
+                foreach (var releaseAsset in release.Assets)
+                {
+                    Console.WriteLine("\t" + releaseAsset.Name);
+                }
+                return;
+            }
+
             await using (var file = File.OpenWrite(updateZipName))
             {
                 await using var stream = await client.GetStreamAsync(asset.BrowserDownloadUrl);
@@ -164,14 +175,18 @@ namespace BitJuice.Backup.Commands
 
         private static string GetAssetName()
         {
+            var sb = new StringBuilder();
             if (OperatingSystem.IsWindows())
-                return "win-x64.zip";
+                sb.Append("win-x64");
             if (OperatingSystem.IsLinux())
-                return "linux-x64.zip";
-            throw new NotSupportedException();
+                sb.Append("linux-x64");
+            if (IsSelfContained())
+                sb.Append("-sc");
+            sb.Append(".zip");
+            return sb.ToString();
         }
 
-        private static bool GetSelfContained()
+        private static bool IsSelfContained()
         {
             var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
             return assembly.GetCustomAttribute<SelfContainedAttribute>()?.SelfContained ?? true;
