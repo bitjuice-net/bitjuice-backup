@@ -32,7 +32,7 @@ namespace BitJuice.Backup.Modules.Providers
             var repositories = await github.Repository.GetAllForCurrent();
             foreach (var repository in repositories)
             {
-                logger.LogInformation("Processing repository: {repository}", repository.Name);
+                logger.LogInformation("Processing repository: {repository}", repository.FullName);
                 yield return new GithubDataItem(github, repository);
             }
         }
