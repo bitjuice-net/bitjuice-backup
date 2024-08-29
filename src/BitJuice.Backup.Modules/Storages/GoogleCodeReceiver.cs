@@ -13,7 +13,7 @@ public class GoogleCodeReceiver : ICodeReceiver
 
     public Task<AuthorizationCodeResponseUrl> ReceiveCodeAsync(AuthorizationCodeRequestUrl url, CancellationToken taskCancellationToken)
     {
-        var authorizationUrl = url.Build().AbsoluteUri;
+        var authorizationUrl = url.Build().AbsoluteUri + "&prompt=consent";
 
         Console.WriteLine("Please visit the following URL in a web browser, then enter the code shown after authorization:");
         Console.WriteLine(authorizationUrl);
