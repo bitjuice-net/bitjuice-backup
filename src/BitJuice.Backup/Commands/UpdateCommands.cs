@@ -137,6 +137,8 @@ namespace BitJuice.Backup.Commands
             Console.WriteLine("Downloading update");
 
             var assetName = GetAssetName();
+            if (GetSelfContained()) 
+                assetName += "-sc";
             
             using var client = new HttpClient();
             client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Bitjuice.Backup", "1.0.0"));
@@ -167,6 +169,12 @@ namespace BitJuice.Backup.Commands
             if (OperatingSystem.IsLinux())
                 return "linux-x64.zip";
             throw new NotSupportedException();
+        }
+
+        private static bool GetSelfContained()
+        {
+            var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+            return assembly.GetCustomAttribute<SelfContainedAttribute>()?.SelfContained ?? true;
         }
     }
 }
