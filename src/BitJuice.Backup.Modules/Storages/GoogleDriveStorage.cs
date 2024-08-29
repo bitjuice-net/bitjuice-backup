@@ -7,6 +7,7 @@ using BitJuice.Backup.Infrastructure;
 using BitJuice.Backup.Model;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
+using Google.Apis.Http;
 using Google.Apis.Services;
 using Google.Apis.Upload;
 using Google.Apis.Util.Store;
@@ -82,15 +83,24 @@ namespace BitJuice.Backup.Modules.Storages
             }
         }
 
-        private async Task<UserCredential> AuthorizeAsync()
+        private async Task<IConfigurableHttpClientInitializer> AuthorizeAsync()
         {
-            var clientSecrets = await GoogleClientSecrets.FromFileAsync(Config.CredentialsFile);
-            var fileDataStore = new FileDataStore(Config.TokensDir, true);
-            var timeout = Task.Delay(TimeSpan.FromMinutes(3));
-            var task = GoogleWebAuthorizationBroker.AuthorizeAsync(clientSecrets.Secrets, Scopes, "user", CancellationToken.None, fileDataStore, new GoogleCodeReceiver());
-            if (await Task.WhenAny(task, timeout) == timeout)
-                throw new TimeoutException("GoogleDrive authentication failed.");
-            return task.Result;
+            switch (Config.CredentialsType)
+            {
+                case GoogleCredentialsType.User:
+                    var userCredentials = await GoogleClientSecrets.FromFileAsync(Config.CredentialsFile);
+                    var fileDataStore = new FileDataStore(Config.TokensDir, true);
+                    var codeReceiver = new GoogleCodeReceiver();
+                    var timeout = Task.Delay(TimeSpan.FromMinutes(3));
+                    var task = GoogleWebAuthorizationBroker.AuthorizeAsync(userCredentials.Secrets, Scopes, "user", CancellationToken.None, fileDataStore, codeReceiver);
+                    if (await Task.WhenAny(task, timeout) == timeout)
+                        throw new TimeoutException("GoogleDrive authentication failed.");
+                    return task.GetAwaiter().GetResult();
+                case GoogleCredentialsType.Service:
+                    return GoogleCredential.FromFile(Config.CredentialsFile).CreateScoped(Scopes);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }
