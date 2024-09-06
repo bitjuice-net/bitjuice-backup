@@ -15,7 +15,7 @@ jobs:
         dotnet-version: 8.0.x
     - name: Publish
       run: |
-        TARGETS=("linux-x64" "linux-x64-sc" "win-x64" "win-x64-sc")
+        TARGETS=("win-x64" "win-x64-sc" "linux-x64" "linux-x64-sc" "osx-x64" "osx-x64-sc" "osx-arm64" "osx-arm64-sc" )
         for target in "${TARGETS[@]}"; do
           self_contained=$([[ $target == *"-sc" ]] && echo true || echo false)
           dotnet publish -c Release -r ${target%-sc} --self-contained $self_contained -p:PublishSingleFile=true -p:Version=${GITHUB_REF_NAME:1} -o publish/$target src/BitJuice.Backup/BitJuice.Backup.csproj

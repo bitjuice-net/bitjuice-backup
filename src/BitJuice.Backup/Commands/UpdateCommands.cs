@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -187,11 +188,24 @@ namespace BitJuice.Backup.Commands
         {
             var sb = new StringBuilder();
             if (OperatingSystem.IsWindows())
-                sb.Append("win-x64");
-            if (OperatingSystem.IsLinux())
-                sb.Append("linux-x64");
+                sb.Append("win");
+            else if (OperatingSystem.IsLinux())
+                sb.Append("linux");
+            else if (OperatingSystem.IsMacOS())
+                sb.Append("osx");
+            else
+                throw new NotSupportedException("Not supported operating system");
+            
+            if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+                sb.Append("-arm64");
+            else if(RuntimeInformation.ProcessArchitecture == Architecture.X64)
+                sb.Append("-x64");
+            else
+                throw new NotSupportedException("Not supported operating architecture");
+                
             if (IsSelfContained())
                 sb.Append("-sc");
+            
             sb.Append(".zip");
             return sb.ToString();
         }
