@@ -37,15 +37,20 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    - name: Publish
+    - name: Setup
       run: |
         NAME="${{ matrix.target }}$( [ "${{ matrix.self-contained }}" = "true" ] && echo "-sc" || echo "" )"
-        FILENAME="$NAME.zip" 
+        echo "NAME=$NAME" >> $GITHUB_ENV
+    - name: Publish
+      run: |
+        FILENAME="$NAME.zip"
         echo "Building $FILENAME"
         dotnet publish -c Release -r ${{ matrix.target }} --self-contained "${{ matrix.self-contained }}" -p:PublishSingleFile=true -p:Version=${GITHUB_REF_NAME:1} -o publish/$NAME src/BitJuice.Backup/BitJuice.Backup.csproj
         cd publish/$NAME
         zip -r ../$FILENAME ./*
-        cd ../..
+    - name: Upload
+      run: |
+        FILENAME="$NAME.zip"
         echo "Uploading $FILENAME"
         curl -L \
           -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
