@@ -5,8 +5,25 @@ on:
     types: [ created ]
 
 jobs:
+  getrelease:
+    steps:
+    - name: Get release
+      run: |
+        echo "Getting release for tag: $GITHUB_REF_NAME"
+        RELEASE_RESPONSE=$(curl -Ls \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Accept: application/vnd.github+json" \
+          -H "Content-Type: application/vnd.github+json" \
+          "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$GITHUB_REF_NAME")
+        GITHUB_RELEASE_ID=$(echo $RELEASE_RESPONSE | grep -oP '"id":\s?\K\d+' | head -n 1)
+        GITHUB_UPLOAD_URL=$(echo $RELEASE_RESPONSE | grep -oP '"upload_url": "\K[^"]+' | sed -e "s/{?name,label}//") >> $GITHUB_ENV
+        echo "Release ID: $GITHUB_RELEASE_ID"
   publish:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        self-contained: [false, true]
+        target: ["win-x64", "linux-x64", "osx-x64", "osx-arm64"]
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
@@ -15,30 +32,16 @@ jobs:
         dotnet-version: 8.0.x
     - name: Publish
       run: |
-        TARGETS=("win-x64" "win-x64-sc" "linux-x64" "linux-x64-sc" "osx-x64" "osx-x64-sc" "osx-arm64" "osx-arm64-sc" )
-        for target in "${TARGETS[@]}"; do
-          self_contained=$([[ $target == *"-sc" ]] && echo true || echo false)
-          dotnet publish -c Release -r ${target%-sc} --self-contained $self_contained -p:PublishSingleFile=true -p:Version=${GITHUB_REF_NAME:1} -o publish/$target src/BitJuice.Backup/BitJuice.Backup.csproj
-          cd publish/$target
-          zip -r ../$target.zip ./*
-          cd ../..
-        done
-        echo "Getting release for tag: $GITHUB_REF_NAME"
-        RELEASE_RESPONSE=$(curl -Ls \
+        NAME="${{ matrix.target }}$( [ "${{ matrix.self-contained }}" = "true" ] && echo "-sc" || echo "" )"
+        FILENAME="$NAME.zip" 
+        dotnet publish -c Release -r ${{ matrix.target }} --self-contained "${{ matrix.self-contained }}" -p:PublishSingleFile=true -p:Version=${GITHUB_REF_NAME:1} -o publish/$name src/BitJuice.Backup/BitJuice.Backup.csproj
+        cd publish/$NAME
+        zip -r ../$FILENAME ./*
+        cd ../..
+        echo "Uploading $FILENAME"
+        curl -L \
           -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
           -H "Accept: application/vnd.github+json" \
-          -H "Content-Type: application/vnd.github+json" \
-          "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$GITHUB_REF_NAME")
-        RELEASE_ID=$(echo $RELEASE_RESPONSE | grep -oP '"id":\s?\K\d+' | head -n 1)
-        UPLOAD_URL=$(echo $RELEASE_RESPONSE | grep -oP '"upload_url": "\K[^"]+' | sed -e "s/{?name,label}//")
-        echo "Release ID: $RELEASE_ID"
-        for TARGET in "${TARGETS[@]}"; do
-          FILENAME="$TARGET.zip" 
-          echo "Uploading $FILENAME"
-          curl -L \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary @"publish/$FILENAME" \
-            "$UPLOAD_URL?name=$FILENAME"
-        done
+          -H "Content-Type: application/octet-stream" \
+          --data-binary @"publish/$FILENAME" \
+          "$GITHUB_UPLOAD_URL?name=$FILENAME"
