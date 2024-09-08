@@ -187,25 +187,9 @@ namespace BitJuice.Backup.Commands
         private static string GetAssetName()
         {
             var sb = new StringBuilder();
-            if (OperatingSystem.IsWindows())
-                sb.Append("win");
-            else if (OperatingSystem.IsLinux())
-                sb.Append("linux");
-            else if (OperatingSystem.IsMacOS())
-                sb.Append("osx");
-            else
-                throw new NotSupportedException("Not supported operating system");
-            
-            if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
-                sb.Append("-arm64");
-            else if(RuntimeInformation.ProcessArchitecture == Architecture.X64)
-                sb.Append("-x64");
-            else
-                throw new NotSupportedException("Not supported operating architecture");
-                
+            sb.Append(RuntimeInformation.RuntimeIdentifier);    
             if (IsSelfContained())
                 sb.Append("-sc");
-            
             sb.Append(".zip");
             return sb.ToString();
         }
