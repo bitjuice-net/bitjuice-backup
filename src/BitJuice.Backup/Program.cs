@@ -8,6 +8,7 @@ namespace BitJuice.Backup
     {
         public static async Task Main(string[] args)
         {
+            // test
             var updateStageOption = new Option<int>(["-s", "--stage"]) { IsHidden = true };
             var updateProcessIdOption = new Option<int>(["-pid", "--processId"]) { IsHidden = true, };
             var updateCommand = new Command("update"){ updateStageOption, updateProcessIdOption };
