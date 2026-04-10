@@ -1,4 +1,4 @@
-name: Publish
+name: Publish Release
 
 on:
   release:
@@ -58,3 +58,37 @@ jobs:
           -H "Content-Type: application/octet-stream" \
           --data-binary @"publish/$FILENAME" \
           "${{ needs.getrelease.outputs.upload-url }}?name=$FILENAME"
+  docker:
+    runs-on: ubuntu-latest
+    needs: [getrelease]
+    env:
+      IMAGE_BASE_TAG: jaroslawdutka/bitjuice-backup
+      
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Set tags
+      id: tags
+      run: |
+        echo 'latest_tag=${{ env.IMAGE_BASE_TAG }}:latest' >> $GITHUB_OUTPUT
+        echo 'version_tag=${{ env.IMAGE_BASE_TAG }}:${GITHUB_REF_NAME:1}' >> $GITHUB_OUTPUT
+      
+    - name: Docker login
+      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+      
+    - name: Docker build
+      run: |
+        docker build -t ${{ steps.tags.outputs.version_tag }} .
+        docker tag ${{ steps.tags.outputs.version_tag }} ${{ steps.tags.outputs.latest_tag }}
+
+    - name: Docker push
+      run: |
+        docker push ${{ steps.tags.outputs.version_tag }}
+        docker push ${{ steps.tags.outputs.latest_tag }}
+
+    - name: Docker logout
+      if: always()
+      run: docker logout
