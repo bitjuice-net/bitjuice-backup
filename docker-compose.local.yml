@@ -1,0 +1,11 @@
+services:
+  backup:
+    build: .
+    container_name: bitjuice-backup
+    restart: unless-stopped
+    environment:
+      - BACKUP_CRON_SCHEDULE=* * * * *
+      - BACKUP_WORKFLOW_FILE=config/workflow.single.yml
+    volumes:
+      - ./samples/config:/app/config
+      - ./samples/logs:/app/logs

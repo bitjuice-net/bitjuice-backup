@@ -1,5 +1,4 @@
 ﻿using System.CommandLine;
-using System.Threading.Tasks;
 using BitJuice.Backup.Commands;
 
 namespace BitJuice.Backup
@@ -25,7 +24,7 @@ namespace BitJuice.Backup
                 cronUninstallCommand
             };
 
-            var configOption = new Option<string>(["-c", "--config"], "Add configuration file.");
+            var configOption = new Option<string?>(["-c", "--config"], "Add configuration file.");
             var executeCommand = new Command("execute") {configOption};
             executeCommand.SetHandler(AppCommands.Execute, configOption);
 

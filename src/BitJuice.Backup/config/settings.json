@@ -1,23 +1,2 @@
 {
-  "workflow": {
-    "file": "config/workflow.yml",
-    "assemblies": [
-      "BitJuice.Backup.Modules"
-    ]
-  },
-  "serilog": {
-    "MinimumLevel": "Information",
-    "Using": [ "Serilog.Sinks.Console", "Serilog.Sinks.File" ],
-    "WriteTo": [
-      { "Name": "Console" },
-      {
-        "Name": "File",
-        "Args": {
-          "path": "logs/backup-.log",
-          "rollingInterval": 3
-        }
-      }
-    ],
-    "Enrich": [ "FromLogContext", "WithMachineName", "WithThreadId" ]
-  }
 }

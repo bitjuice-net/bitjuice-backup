@@ -1,0 +1,28 @@
+2026-04-10 09:55:01.094 +00:00 [INF] Registering module 'multi-workflow' with type 'BitJuice.Backup.Modules.Workflows.MultiWorkflow'
+2026-04-10 09:55:01.125 +00:00 [INF] Registering module 'streaming-workflow' with type 'BitJuice.Backup.Modules.Workflows.StreamingWorkflow'
+2026-04-10 09:55:01.126 +00:00 [INF] Registering module 'file-storage' with type 'BitJuice.Backup.Modules.Storages.FileStorage'
+2026-04-10 09:55:01.126 +00:00 [INF] Registering module 'google-drive-storage' with type 'BitJuice.Backup.Modules.Storages.GoogleDriveStorage'
+2026-04-10 09:55:01.126 +00:00 [INF] Registering module 'directory-provider' with type 'BitJuice.Backup.Modules.Providers.DirectoryProvider'
+2026-04-10 09:55:01.130 +00:00 [INF] Registering module 'github-provider' with type 'BitJuice.Backup.Modules.Providers.GithubProvider'
+2026-04-10 09:55:01.130 +00:00 [INF] Registering module 'tar-aggregator' with type 'BitJuice.Backup.Modules.Aggregators.TarAggregator'
+2026-04-10 09:55:01.130 +00:00 [INF] Registering module 'tgz-aggregator' with type 'BitJuice.Backup.Modules.Aggregators.TgzAggregator'
+2026-04-10 09:55:01.130 +00:00 [INF] Registering module 'zip-aggregator' with type 'BitJuice.Backup.Modules.Aggregators.ZipAggregator'
+2026-04-10 09:55:01.131 +00:00 [INF] Registering module 'docker-action' with type 'BitJuice.Backup.Modules.Actions.DockerAction'
+2026-04-10 09:55:01.131 +00:00 [INF] Registering module 'shell-action' with type 'BitJuice.Backup.Modules.Actions.ShellAction'
+2026-04-10 09:55:01.157 +00:00 [INF] Loading workflow modules
+2026-04-10 09:55:01.163 +00:00 [INF] Starting workflow: Backup home directories to cloud
+2026-04-10 09:55:01.164 +00:00 [INF] Executing pre-actions
+2026-04-10 09:55:01.164 +00:00 [INF] Executing backup
+2026-04-10 09:55:01.168 +00:00 [WRN] An error occurred during workflow execution.
+System.IO.DirectoryNotFoundException: Could not find a part of the path '/backup/backup.tar.gz'.
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.Open(String path, FileMode mode)
+   at BitJuice.Backup.Modules.Storages.FileStorage.PushAsync(IAsyncEnumerable`1 items) in /src/BitJuice.Backup.Modules/Storages/FileStorage.cs:line 19
+   at BitJuice.Backup.Modules.Storages.FileStorage.PushAsync(IAsyncEnumerable`1 items) in /src/BitJuice.Backup.Modules/Storages/FileStorage.cs:line 21
+   at BitJuice.Backup.Modules.Storages.FileStorage.PushAsync(IAsyncEnumerable`1 items) in /src/BitJuice.Backup.Modules/Storages/FileStorage.cs:line 14
+   at BitJuice.Backup.Modules.Workflows.StreamingWorkflow.RunAsync() in /src/BitJuice.Backup.Modules/Workflows/StreamingWorkflow.cs:line 68
+2026-04-10 09:55:01.169 +00:00 [INF] Executing post-actions
+2026-04-10 09:55:01.169 +00:00 [INF] Workflow finished
