@@ -4,10 +4,11 @@ set -e
 SCHEDULE_FILE="/app/config/cron-schedule"
 DEFAULT_SCHEDULE="0 2 * * *"
 
-if [ -f "$SCHEDULE_FILE" ]; then
+# Env variable takes priority, then file, then default
+if [ -n "$BACKUP_CRON_SCHEDULE" ]; then
+    SCHEDULE="$BACKUP_CRON_SCHEDULE"
+elif [ -f "$SCHEDULE_FILE" ]; then
     SCHEDULE=$(head -1 "$SCHEDULE_FILE" | tr -d '\r\n')
-else
-    SCHEDULE="$DEFAULT_SCHEDULE"
 fi
 
 if [ -z "$SCHEDULE" ]; then
