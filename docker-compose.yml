@@ -1,0 +1,8 @@
+services:
+  backup:
+    image: jaroslawdutka/bitjuice-backup:latest
+    container_name: bitjuice-backup
+    restart: unless-stopped
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
