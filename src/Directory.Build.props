@@ -1,6 +1,6 @@
 <Project>
 	<PropertyGroup>
-		<DotNetVersion>8.0</DotNetVersion>
+		<DotNetVersion>10.0</DotNetVersion>
 		<TargetFramework>net$(DotNetVersion)</TargetFramework>
     	<ImplicitUsings>enable</ImplicitUsings>
     	<Nullable>enable</Nullable>
