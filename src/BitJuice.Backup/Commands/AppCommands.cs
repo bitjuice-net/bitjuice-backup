@@ -7,18 +7,18 @@ namespace BitJuice.Backup.Commands
 {
     public class AppCommands
     {
-        public static async Task Execute(string settingsFile)
+        public static async Task Execute(string? settingsFile)
         {
             var services = ConfigureServices(settingsFile);
             var executor = services.GetRequiredService<WorkflowExecutor>();
             await executor.RunAsync();
         }
 
-        private static IServiceProvider ConfigureServices(string settingsFile)
+        private static IServiceProvider ConfigureServices(string? settingsFile)
         {
             var config = new ConfigurationBuilder()
                 .AddJsonFile("settings.json")
-                .AddJsonFile("config/settings.json", optional: true)
+                .AddJsonFile(settingsFile ?? "config/settings.json", optional: true)
                 .AddEnvironmentVariables()
                 .Build();
 
