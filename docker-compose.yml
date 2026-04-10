@@ -5,6 +5,7 @@ services:
     restart: unless-stopped
     environment:
       - BACKUP_CRON_SCHEDULE=0 2 * * *
+      - BACKUP_WORKFLOW_FILE=config/workflow.yml
     volumes:
       - ./config:/app/config
       - ./logs:/app/logs

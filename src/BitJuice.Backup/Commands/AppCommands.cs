@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using BitJuice.Backup.Core;
+﻿using BitJuice.Backup.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -9,8 +7,6 @@ namespace BitJuice.Backup.Commands
 {
     public class AppCommands
     {
-        private const string DefaultSettingsFile = "config/settings.json";
-
         public static async Task Execute(string settingsFile)
         {
             var services = ConfigureServices(settingsFile);
@@ -21,7 +17,9 @@ namespace BitJuice.Backup.Commands
         private static IServiceProvider ConfigureServices(string settingsFile)
         {
             var config = new ConfigurationBuilder()
-                .AddJsonFile(settingsFile ?? DefaultSettingsFile)
+                .AddJsonFile("settings.json")
+                .AddJsonFile("config/settings.json", optional: true)
+                .AddEnvironmentVariables()
                 .Build();
 
             var logger = new LoggerConfiguration()

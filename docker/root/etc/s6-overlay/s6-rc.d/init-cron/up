@@ -1,1 +1,1 @@
-/etc/s6-overlay/scripts/init-cron.sh
+with-contenv /etc/s6-overlay/scripts/init-cron.sh
